@@ -1,19 +1,9 @@
+#include "config.hpp"
 #include <LedController.hpp>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoOTA.h>
-
-#define DIGITS 8
-#define SPI_CLK D5
-#define SPI_MOSI D7
-#define SPI_CS D8
-#define BRIGHTNESS 2
-#define UPDATA_RATE_MS 60000
-
-const char* ssid = "your-wlan-ssid";
-const char* password = "your-wlan-password";
-const char* apiUrl = "https://blockstream.info/api/blocks/tip/height";
 
 int lastBlockTime = 0;
 unsigned long lastMillis = millis() - UPDATA_RATE_MS;
@@ -113,9 +103,9 @@ void displayBlockTime(int blockTime) {
   const auto blockStr = String(blockTime);
   const auto len = blockStr.length();
   const auto maxDigits = DIGITS - 1;  // max allowed len (first position stays empty)
-  
+
   lc.setChar(0, maxDigits, ' ', false);
-  
+
   for (auto i = 0; i < len && i < maxDigits; i++) {
     auto displayPos = maxDigits - i - 1;
     auto digit = blockStr[i];
@@ -123,8 +113,8 @@ void displayBlockTime(int blockTime) {
     delay(150);
   }
 
-  if(len < maxDigits) {
-    lc.setChar(0, 0, ' ',false);
+  if (len < maxDigits) {
+    lc.setChar(0, 0, ' ', false);
   }
 }
 
