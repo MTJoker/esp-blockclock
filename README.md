@@ -1,5 +1,6 @@
 # esp-blockclock
 A clock running on ESP8266 which shows the current bitcoin blocktime using a 7-segment display
+![](images/esp-blockclock.jpeg)
 
 # requirements
 - an ESP8266 or similar (I used an wemos D1 mini clone)
