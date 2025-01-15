@@ -3,7 +3,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <ArduinoOTA.h>
 
 int lastBlockTime = 0;
 unsigned long lastMillis = millis() - UPDATA_RATE_MS;
@@ -15,7 +14,6 @@ void setup() {
 
   setupDisplay();
   setupWifi();
-  setupOTA();
 }
 
 void setupDisplay() {
@@ -39,26 +37,7 @@ void setupWifi() {
   wifiClient.setInsecure();
 }
 
-void setupOTA() {
-  ArduinoOTA.onStart([]() {
-    String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
-    Serial.println("Start updating " + type);
-  });
-
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
-  });
-
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-  });
-
-  ArduinoOTA.begin();
-}
-
 void loop() {
-  ArduinoOTA.handle();
-
   unsigned long currentMillis = millis();
   if (currentMillis - lastMillis >= UPDATA_RATE_MS) {
     lastMillis = currentMillis;
@@ -99,7 +78,7 @@ void updateBlockTime() {
 
 void displayBlockTimeWithAnimation(int blockTime) {
   auto blockStr = String(blockTime);
-  const auto len = blockStr.length();
+  auto len = blockStr.length() <= DIGITS ? blockStr.length() : DIGITS;
 
   const auto rightIndex = (DIGITS - len) / 2;
   const auto leftIndex = rightIndex + len - 1;
@@ -109,8 +88,8 @@ void displayBlockTimeWithAnimation(int blockTime) {
     delay(150);
   }
 
-  for (int i = leftIndex; i >= rightIndex; i--) {
-    auto value = blockStr[len - i];
+  for (int i = leftIndex, digitIndex = 0; i >= rightIndex; i--, digitIndex++) {
+    auto value = blockStr[digitIndex]; 
     lc.setChar(0, i, value, false);
     delay(150);
   }
