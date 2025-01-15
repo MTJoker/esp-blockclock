@@ -100,21 +100,25 @@ void updateBlockTime() {
 }
 
 void displayBlockTime(int blockTime) {
-  const auto blockStr = String(blockTime);
+  auto blockStr = String(blockTime);
   const auto len = blockStr.length();
-  const auto maxDigits = DIGITS - 1;  // max allowed len (first position stays empty)
+  const auto padding = (DIGITS - len) / 2;
 
-  lc.setChar(0, maxDigits, ' ', false);
-
-  for (auto i = 0; i < len && i < maxDigits; i++) {
-    auto displayPos = maxDigits - i - 1;
-    auto digit = blockStr[i];
-    lc.setChar(0, displayPos, digit, false);
-    delay(150);
+  // Add empty padding at the beginning and end of the string to center it
+  String paddedBlockStr = "";
+  for (int i = 0; i < padding; i++) {
+    paddedBlockStr += " ";  // Add spaces at the beginning
+  }
+  paddedBlockStr += blockStr;  // Add the block time
+  for (int i = 0; i < (DIGITS - len - padding); i++) {
+    paddedBlockStr += " ";  // Add spaces at the end
   }
 
-  if (len < maxDigits) {
-    lc.setChar(0, 0, ' ', false);
+  for (int i = 0; i < DIGITS; i++) {
+    auto displayPos = DIGITS - i - 1;
+    auto value = paddedBlockStr[i];
+    lc.setChar(0, displayPos, value, false);
+    delay(150);
   }
 }
 
