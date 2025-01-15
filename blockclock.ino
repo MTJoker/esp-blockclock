@@ -87,9 +87,7 @@ void updateBlockTime() {
     Serial.println("BlockTime: " + payload);
 
     if (currentBlockTime != lastBlockTime) {
-      displayAnimation();
-
-      displayBlockTime(currentBlockTime);
+      displayBlockTimeWithAnimation(currentBlockTime);
       lastBlockTime = currentBlockTime;
     }
   } else {
@@ -99,33 +97,21 @@ void updateBlockTime() {
   http.end();
 }
 
-void displayBlockTime(int blockTime) {
+void displayBlockTimeWithAnimation(int blockTime) {
   auto blockStr = String(blockTime);
   const auto len = blockStr.length();
-  const auto padding = (DIGITS - len) / 2;
 
-  // Add empty padding at the beginning and end of the string to center it
-  String paddedBlockStr = "";
-  for (int i = 0; i < padding; i++) {
-    paddedBlockStr += " ";  // Add spaces at the beginning
-  }
-  paddedBlockStr += blockStr;  // Add the block time
-  for (int i = 0; i < (DIGITS - len - padding); i++) {
-    paddedBlockStr += " ";  // Add spaces at the end
-  }
+  const auto rightIndex = (DIGITS - len) / 2;
+  const auto leftIndex = rightIndex + len - 1;
 
-  for (int i = 0; i < DIGITS; i++) {
-    auto displayPos = DIGITS - i - 1;
-    auto value = paddedBlockStr[i];
-    lc.setChar(0, displayPos, value, false);
+  for (int i = rightIndex; i <= leftIndex; i++) {
+    lc.setChar(0, i, '-', false); 
     delay(150);
   }
-}
 
-void displayAnimation() {
-  // Move the "-" character from right to left
-  for (int i = 0; i < DIGITS; i++) {
-    lc.setChar(0, i, '-', false);
+  for (int i = leftIndex; i >= rightIndex; i--) {
+    auto value = blockStr[len - i];
+    lc.setChar(0, i, value, false);
     delay(150);
   }
 }
