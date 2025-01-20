@@ -12,7 +12,7 @@
 #define BRIGHTNESS 2
 
 // update rate in milliseconds
-#define UPDATA_RATE_MS 60000
+#define UPDATE_RATE_MS 60000
 
 // WLAN credentials
 const char* ssid = "your-wlan-ssid";
