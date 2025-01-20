@@ -4,9 +4,12 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
 
+constexpr int animationDelay = 150;
+
 int lastBlockTime = 0;
 unsigned long lastMillis = millis() - UPDATE_RATE_MS;
 LedController<DIGITS, 1> lc(SPI_MOSI, SPI_CLK, SPI_CS);
+int connectingAnimationDigit = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -25,9 +28,11 @@ void setupWifi() {
   Serial.print("Connecting to WLAN...");
 
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    displayConnectingAnimation();
     Serial.print(".");
   }
+  connectingAnimationDigit = 0;
+  lc.clearMatrix();
 
   Serial.println(" connected!");
   Serial.println("IP Address: " + WiFi.localIP().toString());
@@ -39,9 +44,7 @@ void loop() {
     lastMillis = currentMillis;
 
     if (WiFi.status() != WL_CONNECTED) {
-      Serial.println("Reconnecting to WLAN...");
       setupWifi();
-      return;
     }
 
     auto currentBlockTime = getBlockTime();
@@ -89,12 +92,24 @@ void displayBlockTimeWithAnimation(int blockTime) {
 
   for (int i = rightIndex; i <= leftIndex; i++) {
     lc.setChar(0, i, '-', false);
-    delay(150);
+    delay(animationDelay);
   }
 
   for (int i = leftIndex, digitIndex = 0; i >= rightIndex; i--, digitIndex++) {
     auto value = blockStr[digitIndex];
     lc.setChar(0, i, value, false);
-    delay(150);
+    delay(animationDelay);
   }
+}
+
+void displayConnectingAnimation() {
+  lc.setChar(0, connectingAnimationDigit, '.', false);
+  connectingAnimationDigit++;
+
+  if (connectingAnimationDigit >= DIGITS) {
+    connectingAnimationDigit = 0;
+    lc.clearMatrix();
+  }
+
+  delay(animationDelay);
 }
