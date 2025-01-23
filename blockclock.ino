@@ -2,14 +2,16 @@
 #include <LedController.hpp>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
 #include <WiFiClientSecure.h>
-
-constexpr int animationDelay = 150;
+#include <ArduinoJson.h>
 
 int lastBlockTime = 0;
 unsigned long lastMillis = millis() - UPDATE_RATE_MS;
 LedController<DIGITS, 1> lc(SPI_MOSI, SPI_CLK, SPI_CS);
 int connectingAnimationDigit = 0;
+WiFiClient wifiClient;
+WiFiClientSecure wifiClientSecure;
 
 void setup() {
   Serial.begin(115200);
@@ -36,6 +38,8 @@ void setupWifi() {
 
   Serial.println(" connected!");
   Serial.println("IP Address: " + WiFi.localIP().toString());
+
+  wifiClientSecure.setInsecure();
 }
 
 void loop() {
@@ -57,18 +61,15 @@ void loop() {
 }
 
 int getBlockTime() {
-  WiFiClientSecure wifiClient;
-  wifiClient.setInsecure();
-
   HTTPClient http;
   int blockTime = -1;
 
-  if (http.begin(wifiClient, apiUrl)) {
+  if (http.begin(*getWifiClient(), apiUrl)) {
     const int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
       const auto payload = http.getString();
       if (payload.length() > 0) {
-        blockTime = payload.toInt();
+        blockTime = getBlockTimeFromPayload(payload);
       } else {
         Serial.println("Received empty payload.");
       }
@@ -78,6 +79,36 @@ int getBlockTime() {
     http.end();
   } else {
     Serial.println("Failed to connect to API.");
+  }
+
+  return blockTime;
+}
+
+WiFiClient* getWifiClient() {
+  if (String(apiUrl).startsWith("https://")) {
+    return &wifiClientSecure;
+  } else {
+    return &wifiClient;
+  }
+}
+
+int getBlockTimeFromPayload(String payload) {
+  int blockTime = -1;
+
+  DynamicJsonDocument doc(1024);
+  DeserializationError error = deserializeJson(doc, payload);
+
+  if (!error && doc.is<JsonObject>())  // check if payload was JSON
+  {
+    if (doc.containsKey("height")) {
+      blockTime = doc["height"];
+    } else if (doc.containsKey("data") && doc["data"].containsKey("height")) {
+      blockTime = doc["data"]["height"];
+    } else {
+      Serial.println("Unknown JSON structure");
+    }
+  } else {
+    blockTime = payload.toInt();
   }
 
   return blockTime;

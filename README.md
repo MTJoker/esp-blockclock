@@ -14,3 +14,4 @@ TODO
 # dependencies
 - Arduino IDE (I use V2.3.4)
 - LedController library (https://github.com/noah1510/LedController, I use V2.02)
+- ArduinoJson library (https://arduinojson.org, I use 7.3.0)
