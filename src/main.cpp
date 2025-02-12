@@ -10,7 +10,7 @@
 
 int lastBlockTime = 0;
 unsigned long lastMillis = millis() - UPDATE_RATE_MS;
-LedController lc(SPI_MOSI, SPI_CLK, SPI_CS, 7, false);
+LedController<DIGITS, 1> lc(SPI_MOSI, SPI_CLK, SPI_CS);
 int connectingAnimationDigit = 0;
 WiFiClient wifiClient;
 WiFiClientSecure wifiClientSecure;
