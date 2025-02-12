@@ -105,14 +105,14 @@ WiFiClient* getWifiClient() {
 int getBlockTimeFromPayload(String payload) {
   int blockTime = -1;
 
-  DynamicJsonDocument doc(1024);
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, payload);
 
   if (!error && doc.is<JsonObject>())  // check if payload was JSON
   {
-    if (doc.containsKey("height")) {
+    if (doc["height"].is<int>()) {
       blockTime = doc["height"];
-    } else if (doc.containsKey("data") && doc["data"].containsKey("height")) {
+    } else if (doc["data"]["height"].is<int>()) {
       blockTime = doc["data"]["height"];
     } else {
       Serial.println("Unknown JSON structure");
@@ -131,12 +131,12 @@ void displayBlockTimeWithAnimation(int blockTime) {
   const auto rightIndex = (DIGITS - len) / 2;
   const auto leftIndex = rightIndex + len - 1;
 
-  for (int i = rightIndex; i <= leftIndex; i++) {
+  for (unsigned int i = rightIndex; i <= leftIndex; i++) {
     lc.setChar(0, i, '-', false);
     delay(animationDelay);
   }
 
-  for (int i = leftIndex, digitIndex = 0; i >= rightIndex; i--, digitIndex++) {
+  for (unsigned int i = leftIndex, digitIndex = 0; i >= rightIndex; i--, digitIndex++) {
     auto value = blockStr[digitIndex];
     lc.setChar(0, i, value, false);
     delay(animationDelay);
