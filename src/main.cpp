@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "config.hpp"
 #include <LedController.hpp>
 #include <ESP8266WiFi.h>
@@ -8,10 +10,18 @@
 
 int lastBlockTime = 0;
 unsigned long lastMillis = millis() - UPDATE_RATE_MS;
-LedController<DIGITS, 1> lc(SPI_MOSI, SPI_CLK, SPI_CS);
+LedController lc(SPI_MOSI, SPI_CLK, SPI_CS, 7, false);
 int connectingAnimationDigit = 0;
 WiFiClient wifiClient;
 WiFiClientSecure wifiClientSecure;
+
+void setupDisplay();
+void setupWifi();
+WiFiClient* getWifiClient();
+int getBlockTime();
+int getBlockTimeFromPayload(String payload);
+void displayConnectingAnimation();
+void displayBlockTimeWithAnimation(int blockTime);
 
 void setup() {
   Serial.begin(115200);
@@ -19,6 +29,24 @@ void setup() {
   setupDisplay();
   setupWifi();
 }
+
+void loop() {
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastMillis >= UPDATE_RATE_MS) {
+      lastMillis = currentMillis;
+  
+      if (WiFi.status() != WL_CONNECTED) {
+        setupWifi();
+      }
+  
+      auto currentBlockTime = getBlockTime();
+      if ((currentBlockTime >= 0) && (currentBlockTime != lastBlockTime)) {
+        Serial.println("New BlockTime: " + currentBlockTime);
+        displayBlockTimeWithAnimation(currentBlockTime);
+        lastBlockTime = currentBlockTime;
+      }
+    }
+  }
 
 void setupDisplay() {
   lc.setIntensity(BRIGHTNESS);
@@ -40,24 +68,6 @@ void setupWifi() {
   Serial.println("IP Address: " + WiFi.localIP().toString());
 
   wifiClientSecure.setInsecure();
-}
-
-void loop() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - lastMillis >= UPDATE_RATE_MS) {
-    lastMillis = currentMillis;
-
-    if (WiFi.status() != WL_CONNECTED) {
-      setupWifi();
-    }
-
-    auto currentBlockTime = getBlockTime();
-    if ((currentBlockTime >= 0) && (currentBlockTime != lastBlockTime)) {
-      Serial.println("New BlockTime: " + currentBlockTime);
-      displayBlockTimeWithAnimation(currentBlockTime);
-      lastBlockTime = currentBlockTime;
-    }
-  }
 }
 
 int getBlockTime() {
